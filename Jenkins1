@@ -6,6 +6,8 @@ pipeline {
         JAVA_HOME = "C:\\Program Files\\Java\\jdk-20"
         ANDROID_SDK_ROOT = "C:\\Users\\sayali\\AppData\\Local\\Android\\Sdk"
         PATH = "${FLUTTER_HOME}\\bin;${ANDROID_SDK_ROOT}\\cmdline-tools\\latest\\bin;${env.PATH}"
+        MY_ENV_VAR = "Custom Value for Flutter Build"
+        JAVA_OPTS = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
     }
 
     stages {
@@ -17,38 +19,38 @@ pipeline {
 
         stage('Flutter Version') {
             steps {
-                bat 'git config --global --add safe.directory D:/flutter'
-                bat 'flutter --version'
+                powershell 'git config --global --add safe.directory D:/flutter'
+                powershell 'flutter --version'
             }
         }
 
         stage('Accept Android Licenses') {
             steps {
-                bat 'yes | flutter doctor --android-licenses'
+                powershell 'yes | flutter doctor --android-licenses'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                bat 'flutter pub get'
+                powershell 'flutter pub get'
             }
         }
 
         stage('Analyze Code') {
             steps {
-                bat 'flutter analyze'
+                powershell 'flutter analyze'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'flutter test'
+                powershell 'flutter test'
             }
         }
 
         stage('Build APK') {
             steps {
-                bat 'flutter build apk --release'
+                powershell 'flutter build apk --release'
             }
         }
 
