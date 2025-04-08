@@ -8,6 +8,7 @@ pipeline {
         PATH = "${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${env.PATH}"
         MY_ENV_VAR = "Custom Value for Flutter Build"
         JAVA_OPTS = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
+DART_VM_OPTIONS = "--disable-service-auth-codes"
     }
 
     stages {
