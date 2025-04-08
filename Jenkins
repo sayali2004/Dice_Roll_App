@@ -7,8 +7,7 @@ pipeline {
         ANDROID_SDK_ROOT = "/opt/android-sdk"
         PATH = "${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${env.PATH}"
         MY_ENV_VAR = "Custom Value for Flutter Build"
-       JAVA_OPTS = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
-
+        JAVA_OPTS = "-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
     }
 
     stages {
@@ -27,6 +26,14 @@ pipeline {
         stage('Accept Android Licenses') {
             steps {
                 sh 'yes | flutter doctor --android-licenses'
+                // Or use this if flutter fails:
+                // sh '${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses'
+            }
+        }
+
+        stage('Clean Build') {
+            steps {
+                sh 'flutter clean'
             }
         }
 
@@ -50,6 +57,13 @@ pipeline {
 
         stage('Build APK') {
             steps {
+                // Debug info (optional)
+                sh '''
+                    echo "📦 Building APK..."
+                    echo "📂 Current Dir: $(pwd)"
+                    echo "🛠 JAVA_HOME: $JAVA_HOME"
+                    echo "📱 FLUTTER_HOME: $FLUTTER_HOME"
+                '''
                 sh 'flutter build apk --release'
             }
         }
@@ -63,10 +77,10 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline execution complete.'
+            echo '📌 Pipeline execution complete.'
         }
         success {
-            echo '🎉 Build succeeded!'
+            echo '✅ Build succeeded!'
         }
         failure {
             echo '❌ Build failed.'
