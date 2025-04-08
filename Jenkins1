@@ -5,7 +5,7 @@ pipeline {
         FLUTTER_HOME = "D:/flutter"
         JAVA_HOME = "C:/Program Files/Java/jdk-20"
         ANDROID_SDK_ROOT = "C:/Users/sayali/AppData/Local/Android/Sdk"
-        PATH = "${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${env.PATH}"
+        PATH = "${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${ANDROID_SDK_ROOT}/platform-tools;${JAVA_HOME}/bin;${env.PATH}"
     }
 
     stages {
@@ -30,7 +30,7 @@ pipeline {
 
         stage('Accept Android Licenses') {
             steps {
-                bat 'echo y | sdkmanager.bat --licenses'
+                bat '"%ANDROID_SDK_ROOT%\\cmdline-tools\\latest\\bin\\sdkmanager.bat" --licenses < NUL'
             }
         }
 
@@ -53,12 +53,21 @@ pipeline {
         }
 
         stage('Build APK') {
+            options {
+                timeout(time: 15, unit: 'MINUTES') // Prevent long hangs
+            }
             steps {
-                bat 'flutter build apk --release'
+                bat 'flutter clean'
+                bat 'flutter build apk --release --verbose'
             }
         }
 
         stage('Archive APK') {
+            when {
+                expression {
+                    fileExists('build/app/outputs/flutter-apk/app-release.apk')
+                }
+            }
             steps {
                 archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
             }
