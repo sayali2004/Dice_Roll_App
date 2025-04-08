@@ -19,7 +19,7 @@ pipeline {
 
         stage('Flutter Version') {
             steps {
-                powershell 'git config --global --add safe.directory D:/flutter'
+                // Use a single-line command to avoid Jenkins parsing issue
                 powershell 'flutter --version'
             }
         }
