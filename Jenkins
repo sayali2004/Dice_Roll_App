@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        FLUTTER_HOME = "/opt/flutter"
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
+        ANDROID_SDK_ROOT = "/opt/android-sdk"
+        PATH = "${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${env.PATH}"
+        MY_ENV_VAR = "Custom Value for Flutter Build"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/sayali2004/Dice_Roll_App.git', branch: 'main'
+            }
+        }
+
+        stage('Flutter Version') {
+            steps {
+                sh 'flutter --version'
+            }
+        }
+
+        stage('Accept Android Licenses') {
+            steps {
+                sh 'yes | flutter doctor --android-licenses'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'flutter pub get'
+            }
+        }
+
+        stage('Analyze Code') {
+            steps {
+                sh 'flutter analyze'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'flutter test'
+            }
+        }
+
+        stage('Build APK') {
+            steps {
+                sh 'flutter build apk --release'
+            }
+        }
+
+        stage('Archive APK') {
+            steps {
+                archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution complete.'
+        }
+        success {
+            echo '🎉 Build succeeded!'
+        }
+        failure {
+            echo '❌ Build failed.'
+        }
+    }
+}
