@@ -18,14 +18,17 @@ pipeline {
         }
 
         stage('Flutter Version') {
-    steps {
-        powershell '''
-            git config --global --add safe.directory D:/flutter
-            flutter --version
-        '''
-    }
-}
+            steps {
+                powershell 'git config --global --add safe.directory D:/flutter'
+                powershell 'flutter --version'
+            }
+        }
 
+        stage('Flutter Doctor') {
+            steps {
+                powershell 'flutter doctor -v'
+            }
+        }
 
         stage('Accept Android Licenses') {
             steps {
