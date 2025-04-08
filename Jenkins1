@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         FLUTTER_HOME = "D:\\flutter"
-        ANDROID_SDK_ROOT = "C:\\Users\\sayali\\AppData\\Local\\Android\\Sdk" // Default location; adjust if needed
         JAVA_HOME = "C:\\Program Files\\Java\\jdk-20"
-        PATH = "${FLUTTER_HOME}\\bin;${ANDROID_SDK_ROOT}\\cmdline-tools\\latest\\bin;${JAVA_HOME}\\bin;${env.PATH}"
+        ANDROID_SDK_ROOT = "C:\\Users\\sayali\\AppData\\Local\\Android\\Sdk"
+        PATH = "${FLUTTER_HOME}\\bin;${ANDROID_SDK_ROOT}\\cmdline-tools\\latest\\bin;${env.PATH}"
     }
 
     stages {
@@ -17,29 +17,20 @@ pipeline {
 
         stage('Flutter Version') {
             steps {
+                bat 'git config --global --add safe.directory D:/flutter'
                 bat 'flutter --version'
             }
         }
 
         stage('Accept Android Licenses') {
             steps {
-                bat 'echo y | flutter doctor --android-licenses'
+                bat 'yes | flutter doctor --android-licenses'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 bat 'flutter pub get'
-            }
-        }
-
-        stage('Clean Up') {
-            steps {
-                bat '''
-                taskkill /F /IM dart.exe || echo Dart not running
-                taskkill /F /IM flutter.exe || echo Flutter not running
-                flutter clean
-                '''
             }
         }
 
@@ -63,7 +54,7 @@ pipeline {
 
         stage('Archive APK') {
             steps {
-                archiveArtifacts artifacts: '**/build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+                archiveArtifacts artifacts: 'build\\app\\outputs\\flutter-apk\\app-release.apk', fingerprint: true
             }
         }
     }
