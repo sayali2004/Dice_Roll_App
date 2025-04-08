@@ -16,9 +16,9 @@ pipeline {
         }
 
         stage('Flutter Version') {
-            steps {
-                bat 'flutter --version'
-            }
+           steps {
+    bat 'cmd /c "flutter --version"'
+}
         }
 
         stage('Flutter Doctor') {
