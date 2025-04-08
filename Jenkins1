@@ -1,0 +1,82 @@
+pipeline {
+    agent any
+
+    environment {
+        FLUTTER_HOME = "D:\\flutter"
+        ANDROID_SDK_ROOT = "C:\\Users\\sayali\\AppData\\Local\\Android\\Sdk" // Default location; adjust if needed
+        JAVA_HOME = "C:\\Program Files\\Java\\jdk-20"
+        PATH = "${FLUTTER_HOME}\\bin;${ANDROID_SDK_ROOT}\\cmdline-tools\\latest\\bin;${JAVA_HOME}\\bin;${env.PATH}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/sayali2004/Dice_Roll_App.git', branch: 'main'
+            }
+        }
+
+        stage('Flutter Version') {
+            steps {
+                bat 'flutter --version'
+            }
+        }
+
+        stage('Accept Android Licenses') {
+            steps {
+                bat 'echo y | flutter doctor --android-licenses'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                bat 'flutter pub get'
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                bat '''
+                taskkill /F /IM dart.exe || echo Dart not running
+                taskkill /F /IM flutter.exe || echo Flutter not running
+                flutter clean
+                '''
+            }
+        }
+
+        stage('Analyze Code') {
+            steps {
+                bat 'flutter analyze'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'flutter test'
+            }
+        }
+
+        stage('Build APK') {
+            steps {
+                bat 'flutter build apk --release'
+            }
+        }
+
+        stage('Archive APK') {
+            steps {
+                archiveArtifacts artifacts: '**/build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution complete.'
+        }
+        success {
+            echo '🎉 Build succeeded!'
+        }
+        failure {
+            echo '❌ Build failed.'
+        }
+    }
+}
