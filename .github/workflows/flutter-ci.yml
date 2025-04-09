@@ -1,4 +1,4 @@
-name: Flutter CI/CD
+name: Flutter CI/CD (Windows)
 
 on:
   push:
@@ -17,9 +17,9 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: '3.19.6'  # Use specific version instead of 'stable'
 
-      - name: Flutter Version
+      - name: Display Flutter Version
         run: flutter --version
 
       - name: Flutter Doctor
