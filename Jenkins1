@@ -6,7 +6,9 @@ pipeline {
         JAVA_HOME = "C:/Program Files/Java/jdk-20"
         ANDROID_SDK_ROOT = "C:/Users/sayali/AppData/Local/Android/Sdk"
         PATH = "${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${ANDROID_SDK_ROOT}/platform-tools;${JAVA_HOME}/bin;${env.PATH}"
-        DOCKER_IMAGE = "sayali117/flutter-dice-app"
+
+        // Docker Hub
+        DOCKER_IMAGE = "sayali117/dice_roll_app"
     }
 
     stages {
@@ -81,18 +83,27 @@ pipeline {
                 }
             }
             steps {
-                writeFile file: 'Dockerfile', text: '''
-                FROM nginx:alpine
-                WORKDIR /usr/share/nginx/html
-                COPY build/app/outputs/flutter-apk/app-release.apk .
-                EXPOSE 80
-                CMD ["nginx", "-g", "daemon off;"]
-                '''
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker build -t ${DOCKER_IMAGE}:latest ."
+                    // Create Dockerfile dynamically
+                    writeFile file: 'Dockerfile', text: '''
+                    FROM nginx:alpine
+                    WORKDIR /usr/share/nginx/html
+                    COPY build/app/outputs/flutter-apk/app-release.apk .
+                    RUN echo "<html><body><h2>Dice Roll App</h2><a href='app-release.apk' download>Download APK</a></body></html>" > index.html
+                    EXPOSE 80
+                    CMD ["nginx", "-g", "daemon off;"]
+                    '''
+                }
+
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'a4c41a2f-044f-4c64-90ad-a1dd6270274c',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        bat "docker build -t %DOCKER_IMAGE%:latest ."
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-                        bat "docker push ${DOCKER_IMAGE}:latest"
+                        bat "docker push %DOCKER_IMAGE%:latest"
                     }
                 }
             }
@@ -104,7 +115,7 @@ pipeline {
             echo 'Pipeline execution complete.'
         }
         success {
-            echo '🎉 Build succeeded!'
+            echo '🎉 Build and Docker push succeeded!'
         }
         failure {
             echo '❌ Build failed.'
