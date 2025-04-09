@@ -6,6 +6,7 @@ pipeline {
         JAVA_HOME = "C:/Program Files/Java/jdk-20"
         ANDROID_SDK_ROOT = "C:/Users/sayali/AppData/Local/Android/Sdk"
         PATH = "${FLUTTER_HOME}/bin;${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin;${ANDROID_SDK_ROOT}/platform-tools;${JAVA_HOME}/bin;${env.PATH}"
+        DOCKER_IMAGE = "sayali117/flutter-dice-app"
     }
 
     stages {
@@ -54,7 +55,7 @@ pipeline {
 
         stage('Build APK') {
             options {
-                timeout(time: 15, unit: 'MINUTES') // Prevent long hangs
+                timeout(time: 15, unit: 'MINUTES')
             }
             steps {
                 bat 'flutter clean'
@@ -70,6 +71,30 @@ pipeline {
             }
             steps {
                 archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-release.apk', fingerprint: true
+            }
+        }
+
+        stage('Docker Build & Push') {
+            when {
+                expression {
+                    fileExists('build/app/outputs/flutter-apk/app-release.apk')
+                }
+            }
+            steps {
+                writeFile file: 'Dockerfile', text: '''
+                FROM nginx:alpine
+                WORKDIR /usr/share/nginx/html
+                COPY build/app/outputs/flutter-apk/app-release.apk .
+                EXPOSE 80
+                CMD ["nginx", "-g", "daemon off;"]
+                '''
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat "docker build -t ${DOCKER_IMAGE}:latest ."
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                        bat "docker push ${DOCKER_IMAGE}:latest"
+                    }
+                }
             }
         }
     }
